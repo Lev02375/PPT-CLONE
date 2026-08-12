@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip
+          sudo apt-get install -y wget unzip default-jdk
 
       - name: Download Godot
         run: |
@@ -30,11 +30,21 @@ jobs:
           chmod +x godot
           sudo mv godot /usr/local/bin/
 
-      - name: Download Godot Export Templates
+      - name: Download and install Godot Export Templates
         run: |
           wget -q https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz
-          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
-          unzip -q Godot_v${GODOT_VERSION}-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          mkdir -p ~/.local/share/godot/export_templates/
+          unzip -q Godot_v${GODOT_VERSION}-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/
+          ls -la ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+
+      - name: Generate Debug Keystore (JKS format)
+        run: |
+          keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          cp debug.keystore $GITHUB_WORKSPACE/
+          ls -la $GITHUB_WORKSPACE/debug.keystore
+
+      - name: Create .godot folder
+        run: mkdir -p .godot
 
       - name: Create export directory
         run: mkdir -v -p build/android
